@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>HTML 5 Boilerplate</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,500;1,300;1,700&display=swap" rel="stylesheet">
+  </head>
+  <body>
+    <h1 class="center">Insta-Like-Bot</h1>
+
+    <form >
+      <h2>Step1:</h2>
+      <input type="text" placeholder="username" name="userName" id="userName" />
+      <input type="text" placeholde="password" name="password" id="password" /> 
+      <input type="text" value ="sneakers,jordan3,basketball,sneakerhead,nike,yeezy,donda,kanye,jordan1,hypebeast,jordan11,spacejam,michaeljordan,mj,yeezy350,yeezyseason,drip" placeholder="seachTerm" id="seachTerm" />
+    </form>
+    <button id="start"> Start Insta Like Bot </button>
+    <!-- <button id="stop"> Stop </button> -->
+    <p>Amount of Likes done with Insta-Bot: <span id="amountOfActionsDone"></span></p>
+
+
+	<script>
+
+    // custom javascript to fetch testcase userData from local file
+    getUserData();
+
+    async function getUserData(){
+      const data = await fetch('userData.json');
+      const userDataJson = await data.json();
+      const userNameTestCase = userDataJson.username;
+      const passwordTestCase = userDataJson.password
+      document.getElementById('userName').value = userNameTestCase;
+      document.getElementById('password').value = passwordTestCase;
+    }
+
+    // action that gets triggered by clicking on the start button
+    document.getElementById('start').addEventListener('click', event => {
+
+          let username = document.getElementById("userName").value;
+          let password = document.getElementById("password").value;
+          let searchTerm = document.getElementById("seachTerm").value;
+          const arrayOfSearchTerms = searchTerm.split(',');
+
+          const UserData = {
+            username: username,
+            password: password,
+            arrayOfSearchTerms: arrayOfSearchTerms
+          };
+
+          const options = {
+            method: "POST",
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(UserData)
+          };
+
+          catchSearchTerm();
+          async function catchSearchTerm(){
+            const response = await fetch('/api', options);
+            const json = await response.json();
+            const amountOfActionsDone = json.amountOfActionsDone;
+            document.getElementById("amountOfActionsDone").textContent = amountOfActionsDone;
+            console.log(json);
+          }
+       
+    });   
+
+  </script>
+  </body>
+</html>

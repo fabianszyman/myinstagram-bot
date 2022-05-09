@@ -1,0 +1,23 @@
+{
+  "name": "jsontestyoutube",
+  "version": "1.0.0",
+  "description": "trying to learn using express.js",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "testing",
+    "express",
+    "server"
+  ],
+  "author": "fabianszyman",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.17.3",
+    "nedb": "^1.8.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.21.1"
+  }
+}
