@@ -26,7 +26,7 @@ const minMiliSeconds = 5000;
 const maxMiliSeconds = 10000;
 
 var errorLimitReached = false;
-var maxAmountOfAction = 10;
+var maxAmountOfAction = 20;
 var maxAmountOfActionMinusOne = maxAmountOfAction - 1;
 var amountOfActionsDone = 0;
 
@@ -49,15 +49,14 @@ dbUsers.loadDatabase(function(err) {
     // Start issuing commands after callback...
 });
 
-//dbUsers.findOne({ username: 'sneaker_mania_berlin' }, function(err, doc) {
-//    console.log('Found User:', doc.username);
-//});
-
-//dbActions.findOne({ username: 'sneaker_mania_berlin' }, function(err, doc) {
-//    console.log('Found Action:', doc.username);
-//});
-
-
+// dbUsers.find({ username: 'sneaker_mania_berlin' }, (err, dbUsersData) => {
+//     if (err){
+//         response.end();
+//         console.log(err);
+//         return
+//     }
+//     console.log('Found User:', dbUsersData[0]);
+// });
 
 
 app.post('/api', (request, response) => {
@@ -87,7 +86,7 @@ app.post('/api', (request, response) => {
         await page.type('#loginForm > div > div:nth-child(1) > div > label > input', username);
         await page.type('#loginForm > div > div:nth-child(2) > div > label > input', password);
         await page.click('#loginForm > div > div:nth-child(3)');
-        await page.waitForSelector('input[aria-label="Sucheingabe"]');
+        await page.waitForTimeout(2000);
 
         // check for login error too many login requests
         if (await page.$(loginErrorMessageTooManyLogins) !== null) {
@@ -128,39 +127,40 @@ app.post('/api', (request, response) => {
                     await page.waitForTimeout(2000);
                 
                     // try to open tag result list through typing in the searchTerm inside Search input
-                    if (!errorLimitReached && !searchResultListShown){
-                        for(k=0; noSearchSuggestionAmountOfTrys<amountOfSearchSuggestionTrys; k++){
-                            console.log('Trying to open searchTerms with Typing inside search input field');
-                            await page.type('input[type="text"]', searchTerm);
-                            await page.waitForTimeout(4000);
-                        
-                            // check if searchTerm suggestion dropdown list is showing up
-                            if (await page.$(searchTermSuggestionFirstResult) !== null){
-                                console.log('CHECKPOINT 1');
-                                await page.click(searchTermSuggestionFirstResult);
-                            
-                                // check if page not found error appears
-                                if (await page.$(pageNotFountTitle) !== null){
-                                    console.log('CHECKPOINT 2');
-                                    await page.waitForTimeout(randomNumber(minMiliSeconds, maxMiliSeconds));
-                                    console.log('page not found error no. :'+ noSearchSuggestionAmountOfTrys);
-                                    noSearchSuggestionAmountOfTrys++;
-                                    amountOfErrosLogged++;
-                                } else {
-                                    console.log('CHECKPOINT 3');
-                                    var searchResultListShown = true;
-                                }
-                            }
-                            else {
-                                console.log('CHECKPOINT 4');
-                                var searchTerm = getRandomSearchTerm();
-                                await page.click(clearSearchTermInputIcon);
-                                noSearchSuggestionAmountOfTrys++;
-                                amountOfErrosLogged++;
-                                console.log('No SearchTerm Suggestion showed up');
-                            }
-                        }
-                    }
+                    
+                    // ---> if (!errorLimitReached && !searchResultListShown){
+                    // --->     for(k=0; noSearchSuggestionAmountOfTrys<amountOfSearchSuggestionTrys; k++){
+                    // --->         console.log('Trying to open searchTerms with Typing inside search input field');
+                    // --->         await page.type('input[type="text"]', searchTerm);
+                    // --->         await page.waitForTimeout(4000);
+                    // --->     
+                    // --->         // check if searchTerm suggestion dropdown list is showing up
+                    // --->         if (await page.$(searchTermSuggestionFirstResult) !== null){
+                    // --->             console.log('CHECKPOINT 1');
+                    // --->             await page.click(searchTermSuggestionFirstResult);
+                    // --->         
+                    // --->             // check if page not found error appears
+                    // --->             if (await page.$(pageNotFountTitle) !== null){
+                    // --->                 console.log('CHECKPOINT 2');
+                    // --->                 await page.waitForTimeout(randomNumber(minMiliSeconds, maxMiliSeconds));
+                    // --->                 console.log('page not found error no. :'+ noSearchSuggestionAmountOfTrys);
+                    // --->                 noSearchSuggestionAmountOfTrys++;
+                    // --->                 amountOfErrosLogged++;
+                    // --->             } else {
+                    // --->                 console.log('CHECKPOINT 3');
+                    // --->                 var searchResultListShown = true;
+                    // --->             }
+                    // --->         }
+                    // --->         else {
+                    // --->             console.log('CHECKPOINT 4');
+                    // --->             var searchTerm = getRandomSearchTerm();
+                    // --->             await page.click(clearSearchTermInputIcon);
+                    // --->             noSearchSuggestionAmountOfTrys++;
+                    // --->             amountOfErrosLogged++;
+                    // --->             console.log('No SearchTerm Suggestion showed up');
+                    // --->         }
+                    // --->     }
+                    // ---> }
                 
                     // try to open tag result list immediately
                     if (!errorLimitReached && !searchResultListShown){
@@ -174,8 +174,8 @@ app.post('/api', (request, response) => {
                     }
                 
                     if (searchResultListShown){
-                    
                         var searchResultListShown = false;
+
                         // get number of total amount of posts for a certain serachTerm
                         await page.waitForSelector(imageURLdivElementOfNewestPost);
                         var amountOfTotalPostsForCertainTermCssSelector = 'span[class="g47SY "]';
