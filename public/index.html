@@ -22,7 +22,7 @@
           <div class="formbg-outer">
             <div class="formbg">
               <div class="formbg-inner padding-horizontal--48">
-                <form id="stripe-login">
+                <form >
                   <div class="field padding-bottom--24">
                     <label for="email">Username or Email</label>
                     <input type="text" name="email" id="userName">
@@ -33,7 +33,7 @@
                     </div>
                     <input type="password" name="password" id="password">
                   </div>
-                                  <div class="field padding-bottom--24">
+                    <div class="field padding-bottom--24">
                     <div class="grid--100">
                       <label for="seachTerm">Search Tags (separated by comma)</label>
                     </div>
@@ -42,7 +42,7 @@
                   <div class="padding-bottom--24 flex-flex align-center">
                   </div>
                   <div class="field padding-bottom--24">
-                    <input type="submit" name="submit" id="start" value="Start My Instagram Bot">
+                    <input type="submit" name="submit" id="start" value="Start My Instagram Bot" onClick="disableCTA()">
                   </div>
                 </form>
               </div>
@@ -52,7 +52,12 @@
       </div>
     </div>
 	<script>
-
+    // disabled Start CTA function
+    function disableCTA(){
+      document.getElementById('start').disabled = true;
+      document.getElementById('start').style.cssText = 'border: 1px solid #999999; background-color: #cccccc; color: #666666; box-shadow: 0px 0px; cursor:not-allowed;';
+    }
+    
     // custom javascript to fetch testcase userData from local file
     getUserData();
 
