@@ -4,26 +4,53 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>HTML 5 Boilerplate</title>
+    <title>My Instagram Bot</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,500;1,300;1,700&display=swap" rel="stylesheet">
   </head>
   <body>
-    <h1 class="center">Insta-Like-Bot</h1>
-
-    <form >
-      <h2>Step1:</h2>
-      <input type="text" placeholder="username" name="userName" id="userName" />
-      <input type="text" placeholde="password" name="password" id="password" /> 
-      <input type="text" value ="sneakers,jordan3,basketball,sneakerhead,nike,yeezy,donda,kanye,jordan1,hypebeast,jordan11,spacejam,michaeljordan,mj,yeezy350,yeezyseason,drip" placeholder="seachTerm" id="seachTerm" />
-    </form>
-    <button id="start"> Start Insta Like Bot </button>
-    <!-- <button id="stop"> Stop </button> -->
-    <p>Amount of Likes done with Insta-Bot: <span id="amountOfActionsDone"></span></p>
-
-
+    <div class="login-root">
+      <div class="box-root flex-flex flex-direction--column" style="min-height: 100vh;flex-grow: 1;">
+        <div class="loginbackground box-background--white padding-top--64">
+        </div>
+        <div class="box-root padding-top--24 flex-flex flex-direction--column" style="flex-grow: 1; z-index: 9;">
+          <div class="box-root padding-top--48 padding-bottom--24 flex-flex flex-justifyContent--center">
+            <h1><a rel="dofollow">My Instagram Bot</a></h1>
+          </div>
+          <div class="formbg-outer">
+            <div class="formbg">
+              <div class="formbg-inner padding-horizontal--48">
+                <form id="stripe-login">
+                  <div class="field padding-bottom--24">
+                    <label for="email">Username or Email</label>
+                    <input type="text" name="email" id="userName">
+                  </div>
+                  <div class="field padding-bottom--24">
+                    <div class="grid--50-50">
+                      <label for="password">Password</label>
+                    </div>
+                    <input type="password" name="password" id="password">
+                  </div>
+                                  <div class="field padding-bottom--24">
+                    <div class="grid--100">
+                      <label for="seachTerm">Search Tags (separated by comma)</label>
+                    </div>
+                    <input type="text" name="seachTerm" placeholder="lifestyle,fitness,food" id="seachTerm">
+                  </div>
+                  <div class="padding-bottom--24 flex-flex align-center">
+                  </div>
+                  <div class="field padding-bottom--24">
+                    <input type="submit" name="submit" id="start" value="Start My Instagram Bot">
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
 	<script>
 
     // custom javascript to fetch testcase userData from local file
@@ -37,6 +64,18 @@
       document.getElementById('userName').value = userNameTestCase;
       document.getElementById('password').value = passwordTestCase;
     }
+
+    // custom javascript to fetch testcase seachtags form local file
+    getSearchTerms();
+
+    async function getSearchTerms(){
+      const searchTermsdata = await fetch('searchTerms.json');
+      const searchTermsJson = await searchTermsdata.json();
+      const sneakerSearchTerms = searchTermsJson.searchTerms;
+      document.getElementById('seachTerm').value = sneakerSearchTerms;
+
+    }
+
 
     // action that gets triggered by clicking on the start button
     document.getElementById('start').addEventListener('click', event => {
