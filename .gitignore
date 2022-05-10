@@ -9,6 +9,7 @@ lerna-debug.log*
 # private files
 dbUsers.db
 public/userData.json
+dbActions.db
 
 
 # Diagnostic reports (https://nodejs.org/api/report.html)

@@ -66,12 +66,13 @@ app.post('/api', (request, response) => {
         // check for login error too many login requests
         if (await page.$(loginErrorMessageTooManyLogins) !== null) {
             var errorMessage = 'too many login or your password is not correct';
+            console.log(errorMessage);
             var feedback = "failed";
         } else {
             var feedback = "success";
         }
 
-        var maxAmountOfAction = 2;
+        var maxAmountOfAction = 15;
         var maxAmountOfActionMinusOne = maxAmountOfAction - 1;
         var amountOfActionsDone = 0;
         for(i=1; amountOfActionsDone<=maxAmountOfActionMinusOne; i++){
