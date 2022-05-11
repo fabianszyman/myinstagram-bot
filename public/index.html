@@ -44,6 +44,16 @@
                   <div class="field padding-bottom--24">
                     <input type="submit" name="submit" id="start" value="Start My Instagram Bot" onClick="disableCTA()">
                   </div>
+                  <div class="padding-bottom--24 flex-flex align-center">
+                  </div>
+                  <div class="padding-bottom--24 flex-flex align-center">
+                  </div>
+                  <div class="field padding-bottom--24">
+                    <div class="grid--100">
+                      <label for="serverResponse">Feedback from Server</label>
+                    </div>
+                    <p type="text" name="serverResponse" id="serverResponse"></p>
+                  </div>
                 </form>
               </div>
             </div>
@@ -107,7 +117,8 @@
           async function catchSearchTerm(){
             const response = await fetch('/api', options);
             const json = await response.json();
-            document.getElementById("amountOfActionsDone").textContent = json;
+            const status = json.status;
+            document.getElementById("serverResponse").textContent = status;
             console.log(json);
           }
        

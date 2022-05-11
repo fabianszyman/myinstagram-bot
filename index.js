@@ -47,7 +47,6 @@ var errorLogLimit = 5;
 
 
 var dbActions = new Datastore({ filename: 'dbActions.db' , autoload: true });
-var dbStopAction = new Datastore({ filename: 'dbStopAction.db' , autoload: true });
 var dbUsers = new Datastore({ filename: 'dbUsers.db' , autoload: true });
 
 dbActions.loadDatabase(function(err) {
@@ -71,26 +70,6 @@ app.post('/api', (request, response) => {
         password: request.body.password,
     }
 
-    // -->> // check if user already exists inside dbUsers - thus used the app before
-    // -->> dbUsers.find({ username: username }).sort({ created_at: -1 }).exec(function (err, dbUsersData) {
-    // -->> 
-    // -->> //dbUsers.find({ username: username }, (err, dbUsersData) => {
-    // -->>    if (err){
-    // -->>        response.end();
-    // -->>        console.log(err);
-    // -->>        return
-    // -->>    }
-    // -->>    if (dbUsersData[0] == null){
-    // -->>        console.log('No User found: '+ dbUsersData[0]);
-    // -->>        var userFoundInDbUser = false;
-    // -->>    } else {
-    // -->>        console.log('this is the whole list: ', dbUsersData);
-    // -->>        console.log('Found User:', dbUsersData[0]);
-    // -->>        var userFoundInDbUser = true;
-    // -->>    }
-    // -->> });
-
-    // insert entry into dbUsers.db 
     dbUsers.insert(dbObjectUsers);
 
     async function main() {
@@ -112,34 +91,23 @@ app.post('/api', (request, response) => {
 
         // check for login error too many login requests
         if (await page.$(loginErrorMessageTooManyLogins) !== null) {
-            var errorMessage = 'too many login or your password is not correct';
+            var errorMessage = 'too many logins done or your password is not correct';
             console.log(errorMessage);
             var feedback = "failed";
-        } else {
-            var feedback = "success";
-            // loop over amount of actions
-            for (i=1;amountOfActionsDone<=maxAmountOfActionMinusOne;i++){
+            var timestampActionsEnded = Math.round((new Date()).getTime() / 1000);
+            await browser.close();
+            await response.json({
+                feedback,
+                created_at: timestampActionsStarted, 
+                actions_ended: timestampActionsEnded,
+                amountOfActionsDone,
+                status: "too many logins done or your password is not correct"
+            }); 
 
-                // check if user already exists inside dbActions - thus used the app before
-                dbStopAction.find({ username: username }).sort({ created_at: -1 }).exec(function (err, dbStopActionData) {
-                
-                    //dbUsers.find({ username: username }, (err, dbUsersData) => {
-                    if (err){
-                        response.end();
-                        console.log(err);
-                        return
-                    }
-                    if (dbStopActionData[0] == null){
-                        console.log('Stop Action No User found: '+ dbStopActionData[0]);
-                        var userFoundInDbStopAction = false;
-                    } else {
-                        console.log('Stop Action Found User: ', dbStopActionData[0]);
-                        var lastEntryInDbStopActions = dbStopActionData[0];
-                        var timestampOfLastEntry = lastEntryInDbStopActions.created_at;
-                        console.log('timestamp stopAction: '+ timestampOfLastEntry);
-                        var userFoundInDbStopAction = true;
-                    }
-                });
+        } else {
+
+            // loop over amount of actions, when amountOfActionsDone is smaller than maxAmountOfActions && user did not stop the script
+            for (i=1; (amountOfActionsDone<maxAmountOfActionMinusOne) && (!userFoundInDbStopAction);i++){
             
                 // check if not too many erros were logged
                 if (amountOfErrosLogged>=errorLogLimit){
@@ -151,33 +119,13 @@ app.post('/api', (request, response) => {
                     await browser.close();
                     await response.json({
                         feedback,
-                        created_at: timestampActionsStarted, 
                         actions_ended: timestampActionsEnded,
                         dbObjectUsers,
                         amountOfActionsDone,
-                        status: "failed"
+                        status: "error - Browser closed due to too many errors that were logged"
                     });
-                } 
-                
-                // check if stopped action is inside DB
-                else if (userFoundInDbStopAction == true) {
-                    console.log('Actions stopped');
-                    var feedback = 'actionStopped'
-                    var timestampActionsEnded = Math.round((new Date()).getTime() / 1000);
-                    await browser.close();
-                    await response.json({
-                        feedback,
-                        created_at: timestampActionsStarted, 
-                        actions_ended: timestampActionsEnded,
-                        dbObjectUsers,
-                        amountOfActionsDone,
-                        status: "actions stopped"
-                    });
-                } 
-                
-                // start Action function
-                else {
-                
+                } else { // start Action function
+                 
                     // wait random amount of seconds 
                     if (i != 1) {
                         await page.waitForTimeout(randomNumber(minMiliSeconds, maxMiliSeconds));
@@ -187,42 +135,6 @@ app.post('/api', (request, response) => {
                     var searchTerm = getRandomSearchTerm();
                     var searchTermWithoutHashtag = searchTerm.substring(1);
                     await page.waitForTimeout(2000);
-                
-                    // try to open tag result list through typing in the searchTerm inside Search input
-                    
-                    // ---> if (!errorLimitReached && !searchResultListShown){
-                    // --->     for(k=0; noSearchSuggestionAmountOfTrys<amountOfSearchSuggestionTrys; k++){
-                    // --->         console.log('Trying to open searchTerms with Typing inside search input field');
-                    // --->         await page.type('input[type="text"]', searchTerm);
-                    // --->         await page.waitForTimeout(4000);
-                    // --->     
-                    // --->         // check if searchTerm suggestion dropdown list is showing up
-                    // --->         if (await page.$(searchTermSuggestionFirstResult) !== null){
-                    // --->             console.log('CHECKPOINT 1');
-                    // --->             await page.click(searchTermSuggestionFirstResult);
-                    // --->         
-                    // --->             // check if page not found error appears
-                    // --->             if (await page.$(pageNotFountTitle) !== null){
-                    // --->                 console.log('CHECKPOINT 2');
-                    // --->                 await page.waitForTimeout(randomNumber(minMiliSeconds, maxMiliSeconds));
-                    // --->                 console.log('page not found error no. :'+ noSearchSuggestionAmountOfTrys);
-                    // --->                 noSearchSuggestionAmountOfTrys++;
-                    // --->                 amountOfErrosLogged++;
-                    // --->             } else {
-                    // --->                 console.log('CHECKPOINT 3');
-                    // --->                 var searchResultListShown = true;
-                    // --->             }
-                    // --->         }
-                    // --->         else {
-                    // --->             console.log('CHECKPOINT 4');
-                    // --->             var searchTerm = getRandomSearchTerm();
-                    // --->             await page.click(clearSearchTermInputIcon);
-                    // --->             noSearchSuggestionAmountOfTrys++;
-                    // --->             amountOfErrosLogged++;
-                    // --->             console.log('No SearchTerm Suggestion showed up');
-                    // --->         }
-                    // --->     }
-                    // ---> }
                 
                     // try to open tag result list immediately
                     if (!errorLimitReached && !searchResultListShown){
@@ -294,6 +206,60 @@ app.post('/api', (request, response) => {
                         }
                     }
                 }
+                
+                // check if user already exists inside dbActions - thus used the app before
+                if (!userFoundInDbStopAction){
+                    var dbStopAction = new Datastore({ filename: 'dbStopAction.db' , autoload: true });
+                    await dbStopAction.find({ username: username }).sort({ created_at: -1 }).exec(function 
+                    (err, dbStopActionData) {
+
+                        //dbUsers.find({ username: username }, (err, dbUsersData) => {
+                        if (err){
+                            //response.end();
+                            console.log(err);
+                            return
+                        }
+                        if (dbStopActionData[0] == null){
+                            console.log('Stop Action No User found: '+ dbStopActionData[0]);
+                            userFoundInDbStopAction = false;
+                        } else {
+                            console.log('Stop Action Found User: ', dbStopActionData[0]);
+                            var lastEntryInDbStopActions = dbStopActionData[0];
+                            var timestampOfLastEntry = lastEntryInDbStopActions.created_at;
+                            console.log('timestamp stopAction: '+ timestampOfLastEntry);
+                            userFoundInDbStopAction = true;
+                        }
+                    });
+                }
+            }
+
+            // check if loop ended because of stop action of user
+            if (userFoundInDbStopAction) {
+                console.log('Actions stopped');
+                var feedback = 'actionStopped';
+                var timestampActionsEnded = Math.round((new Date()).getTime() / 1000);
+                await browser.close();
+                await response.json({
+                    feedback,
+                    dbObjectUsers,
+                    actions_ended: timestampActionsEnded,
+                    amountOfActionsDone,
+                    status: "actions stopped by user"
+                });
+            } 
+            
+            // response with success when loop is done and user didn't stop the script
+            else {
+                var feedback = 'Looping done'
+                var timestampActionsEnded = Math.round((new Date()).getTime() / 1000);
+                await browser.close();
+                await response.json({
+                    feedback,
+                    actions_ended: timestampActionsEnded,
+                    dbObjectUsers,
+                    amountOfActionsDone,
+                    status: "Actions finished successful"
+                });
             }
         }
 
@@ -315,22 +281,7 @@ app.post('/api', (request, response) => {
         }
         // function to wait for random amount of seconds --END
 
-        // success response 
-        if (!userFoundInDbStopAction && !errorLimitReached){
-            await browser.close();
-            var timestampActionsEnded = Math.round((new Date()).getTime() / 1000);
-            await response.json({
-                feedback,
-                created_at: timestampActionsStarted, 
-                actions_ended: timestampActionsEnded,
-                dbObjectUsers,
-                amountOfActionsDone,
-                status: "success"
-            });   
-        }
     }
     main();
 });
-
-
 
