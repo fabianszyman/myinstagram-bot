@@ -13,6 +13,12 @@ const loginURL = 'https://www.instagram.com/';
 const tagsURL = 'https://www.instagram.com/explore/tags/';
 
 // CSS variables for selection of elements
+var cookiesAcceptCTA = 'body > div.RnEpo.Yx5HN._4Yzd2 > div > div > button.aOOlW.bIiDR';
+var usernameInput = '#loginForm > div > div:nth-child(1) > div > label > input';
+var passwordInput = '#loginForm > div > div:nth-child(2) > div > label > input';
+var loginCTA = '#loginForm > div > div:nth-child(3)';
+var searchTermInput = 'input[type="text"]';
+
 var imageURLdivElementOfNewestPost = '#react-root > section > main > article > div:nth-child(3) > div > div:nth-child(1) > div:nth-child(1) > a';
 var userInformationDivElement = 'div.e1e1d > div > span > a';
 var emptyHeartIcon = 'section >span > button > div >span > svg[fill="#262626"]';
@@ -26,6 +32,8 @@ const minMiliSeconds = 5000;
 const maxMiliSeconds = 10000;
 
 var errorLimitReached = false;
+var userFoundInDbStopAction = false;
+
 var maxAmountOfAction = 20;
 var maxAmountOfActionMinusOne = maxAmountOfAction - 1;
 var amountOfActionsDone = 0;
@@ -39,6 +47,7 @@ var errorLogLimit = 5;
 
 
 var dbActions = new Datastore({ filename: 'dbActions.db' , autoload: true });
+var dbStopAction = new Datastore({ filename: 'dbStopAction.db' , autoload: true });
 var dbUsers = new Datastore({ filename: 'dbUsers.db' , autoload: true });
 
 dbActions.loadDatabase(function(err) {
@@ -49,22 +58,12 @@ dbUsers.loadDatabase(function(err) {
     // Start issuing commands after callback...
 });
 
-// dbUsers.find({ username: 'sneaker_mania_berlin' }, (err, dbUsersData) => {
-//     if (err){
-//         response.end();
-//         console.log(err);
-//         return
-//     }
-//     console.log('Found User:', dbUsersData[0]);
-// });
-
-
 app.post('/api', (request, response) => {
     const userData = request.body;
     const username = userData.username;
     const password = userData.password;
     const arrayOfSearchTerms = userData.arrayOfSearchTerms;
-    var timestampActionsStarted = Date.now();
+    var timestampActionsStarted = Math.round((new Date()).getTime() / 1000);;
 
     dbObjectUsers = {
         created_at: timestampActionsStarted,
@@ -72,6 +71,26 @@ app.post('/api', (request, response) => {
         password: request.body.password,
     }
 
+    // -->> // check if user already exists inside dbUsers - thus used the app before
+    // -->> dbUsers.find({ username: username }).sort({ created_at: -1 }).exec(function (err, dbUsersData) {
+    // -->> 
+    // -->> //dbUsers.find({ username: username }, (err, dbUsersData) => {
+    // -->>    if (err){
+    // -->>        response.end();
+    // -->>        console.log(err);
+    // -->>        return
+    // -->>    }
+    // -->>    if (dbUsersData[0] == null){
+    // -->>        console.log('No User found: '+ dbUsersData[0]);
+    // -->>        var userFoundInDbUser = false;
+    // -->>    } else {
+    // -->>        console.log('this is the whole list: ', dbUsersData);
+    // -->>        console.log('Found User:', dbUsersData[0]);
+    // -->>        var userFoundInDbUser = true;
+    // -->>    }
+    // -->> });
+
+    // insert entry into dbUsers.db 
     dbUsers.insert(dbObjectUsers);
 
     async function main() {
@@ -79,14 +98,17 @@ app.post('/api', (request, response) => {
             headless: false // setting this to true will not run the UI
         }); 
         const page = await browser.newPage();
+
+        // ---> await page.waitForTimeout(500000); // ----> just testig purpose remove before you push
+
         await page.goto(loginURL);
         await page.waitForTimeout(2000);
-        await page.click('body > div.RnEpo.Yx5HN._4Yzd2 > div > div > button.aOOlW.bIiDR');
+        await page.click(cookiesAcceptCTA);
         await page.waitForTimeout(2000);
-        await page.type('#loginForm > div > div:nth-child(1) > div > label > input', username);
-        await page.type('#loginForm > div > div:nth-child(2) > div > label > input', password);
-        await page.click('#loginForm > div > div:nth-child(3)');
-        await page.waitForTimeout(2000);
+        await page.type(usernameInput, username);
+        await page.type(passwordInput, password);
+        await page.click(loginCTA);
+        await page.waitForTimeout(8000);
 
         // check for login error too many login requests
         if (await page.$(loginErrorMessageTooManyLogins) !== null) {
@@ -97,13 +119,34 @@ app.post('/api', (request, response) => {
             var feedback = "success";
             // loop over amount of actions
             for (i=1;amountOfActionsDone<=maxAmountOfActionMinusOne;i++){
+
+                // check if user already exists inside dbActions - thus used the app before
+                dbStopAction.find({ username: username }).sort({ created_at: -1 }).exec(function (err, dbStopActionData) {
+                
+                    //dbUsers.find({ username: username }, (err, dbUsersData) => {
+                    if (err){
+                        response.end();
+                        console.log(err);
+                        return
+                    }
+                    if (dbStopActionData[0] == null){
+                        console.log('Stop Action No User found: '+ dbStopActionData[0]);
+                        var userFoundInDbStopAction = false;
+                    } else {
+                        console.log('Stop Action Found User: ', dbStopActionData[0]);
+                        var lastEntryInDbStopActions = dbStopActionData[0];
+                        var timestampOfLastEntry = lastEntryInDbStopActions.created_at;
+                        console.log('timestamp stopAction: '+ timestampOfLastEntry);
+                        var userFoundInDbStopAction = true;
+                    }
+                });
             
                 // check if not too many erros were logged
                 if (amountOfErrosLogged>=errorLogLimit){
                     console.log('Amount of Erros that were logged: '+ amountOfErrosLogged);
                     console.log('Browser closed due to too many errors that were logged');
                     var feedback = 'too many errors logged'
-                    var timestampActionsEnded = Date.now();
+                    var timestampActionsEnded = Math.round((new Date()).getTime() / 1000);
                     var errorLimitReached = true;
                     await browser.close();
                     await response.json({
@@ -114,7 +157,26 @@ app.post('/api', (request, response) => {
                         amountOfActionsDone,
                         status: "failed"
                     });
-                } else {
+                } 
+                
+                // check if stopped action is inside DB
+                else if (userFoundInDbStopAction == true) {
+                    console.log('Actions stopped');
+                    var feedback = 'actionStopped'
+                    var timestampActionsEnded = Math.round((new Date()).getTime() / 1000);
+                    await browser.close();
+                    await response.json({
+                        feedback,
+                        created_at: timestampActionsStarted, 
+                        actions_ended: timestampActionsEnded,
+                        dbObjectUsers,
+                        amountOfActionsDone,
+                        status: "actions stopped"
+                    });
+                } 
+                
+                // start Action function
+                else {
                 
                     // wait random amount of seconds 
                     if (i != 1) {
@@ -164,7 +226,8 @@ app.post('/api', (request, response) => {
                 
                     // try to open tag result list immediately
                     if (!errorLimitReached && !searchResultListShown){
-                        await page.goto(tagsURL+searchTermWithoutHashtag);
+                        await page.waitForSelector(searchTermInput);
+                        await page.goto(tagsURL+searchTermWithoutHashtag+'/');
                         if (await page.$(imageURLdivElementOfNewestPost)!== null){
                             var searchResultListShown = true;
                         } else if (await page.$(pageNotFountTitle) !== null) {
@@ -208,7 +271,7 @@ app.post('/api', (request, response) => {
                                 await page.click(emptyHeartIcon);
                                 console.log("Post liked");
                                 amountOfActionsDone++;
-                                var timestampLastLikeAction = Date.now();
+                                var timestampLastLikeAction = Math.round((new Date()).getTime() / 1000);
                                 dbObjectActions = {
                                     created_at: timestampLastLikeAction,
                                     username: request.body.username,
@@ -252,16 +315,19 @@ app.post('/api', (request, response) => {
         }
         // function to wait for random amount of seconds --END
 
-        await browser.close();
-        var timestampActionsEnded = Date.now();
-        await response.json({
-            feedback,
-            created_at: timestampActionsStarted, 
-            actions_ended: timestampActionsEnded,
-            dbObjectUsers,
-            amountOfActionsDone,
-            status: "success"
-        });
+        // success response 
+        if (!userFoundInDbStopAction && !errorLimitReached){
+            await browser.close();
+            var timestampActionsEnded = Math.round((new Date()).getTime() / 1000);
+            await response.json({
+                feedback,
+                created_at: timestampActionsStarted, 
+                actions_ended: timestampActionsEnded,
+                dbObjectUsers,
+                amountOfActionsDone,
+                status: "success"
+            });   
+        }
     }
     main();
 });

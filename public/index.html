@@ -107,8 +107,7 @@
           async function catchSearchTerm(){
             const response = await fetch('/api', options);
             const json = await response.json();
-            const amountOfActionsDone = json.amountOfActionsDone;
-            document.getElementById("amountOfActionsDone").textContent = amountOfActionsDone;
+            document.getElementById("amountOfActionsDone").textContent = json;
             console.log(json);
           }
        
