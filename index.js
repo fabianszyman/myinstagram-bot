@@ -34,7 +34,7 @@ const maxMiliSeconds = 10000;
 var errorLimitReached = false;
 var userFoundInDbStopAction = false;
 
-var maxAmountOfAction = 20;
+var maxAmountOfAction = 50;
 var maxAmountOfActionMinusOne = maxAmountOfAction - 1;
 var amountOfActionsDone = 0;
 
@@ -47,6 +47,7 @@ var errorLogLimit = 5;
 
 
 var dbActions = new Datastore({ filename: 'dbActions.db' , autoload: true });
+var dbStopActions = new Datastore({ filename: 'dbStopActions.db' , autoload: true });
 var dbUsers = new Datastore({ filename: 'dbUsers.db' , autoload: true });
 
 dbActions.loadDatabase(function(err) {
@@ -56,6 +57,27 @@ dbActions.loadDatabase(function(err) {
 dbUsers.loadDatabase(function(err) {
     // Start issuing commands after callback...
 });
+
+app.post('/stop', (request, response) => {
+    const userNameStopAction = request.body;
+    const usernameFromStopAction = userNameStopAction.username;
+    var timestampActionsStopped = Math.round((new Date()).getTime() / 1000);;
+
+    dbStopActionEntry = {
+        created_at: timestampActionsStopped,
+        username: usernameFromStopAction
+    }
+
+    dbStopActions.insert(dbStopActionEntry);
+    response.json({
+        actions_stopped: timestampActionsStopped,
+        dbStopActionEntry,
+        status: "action was stopped"
+    });
+
+});
+
+
 
 app.post('/api', (request, response) => {
     const userData = request.body;
@@ -209,7 +231,7 @@ app.post('/api', (request, response) => {
                 
                 // check if user already exists inside dbActions - thus used the app before
                 if (!userFoundInDbStopAction){
-                    var dbStopAction = new Datastore({ filename: 'dbStopAction.db' , autoload: true });
+                    var dbStopAction = new Datastore({ filename: 'dbStopActions.db' , autoload: true });
                     await dbStopAction.find({ username: username }).sort({ created_at: -1 }).exec(function 
                     (err, dbStopActionData) {
 

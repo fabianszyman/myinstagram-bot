@@ -3,8 +3,7 @@ App that is running Node.js to automate instagram actions (e.g. liking someones 
 
 
 ## Open To Dos:
-- Check is user already used the app before
-- Add Stop CTA (feetch information vomm DB and add check to actions, if maybe the user stopped the actions)
+- Add Stop CTA in FE which triggers an entry into DB
 
 - Add method to remove hashtag sympols from searchterm input 
 - add method to remove empty spaces between searchterms

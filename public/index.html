@@ -42,7 +42,9 @@
                   <div class="padding-bottom--24 flex-flex align-center">
                   </div>
                   <div class="field padding-bottom--24">
-                    <input type="submit" name="submit" id="start" value="Start My Instagram Bot" onClick="disableCTA()">
+                    <input type="submit" name="submit" id="start" value="Start My Instagram Bot" onClick="disableStartCTA()">
+                  </div>
+                    <button id="stop" disabled onClick="disableStopCTA()"> Stop </button>
                   </div>
                   <div class="padding-bottom--24 flex-flex align-center">
                   </div>
@@ -51,8 +53,8 @@
                   <div class="field padding-bottom--24">
                     <div class="grid--100">
                       <label for="serverResponse">Feedback from Server</label>
+                      <p type="text" name="serverResponse" id="serverResponse"></p>
                     </div>
-                    <p type="text" name="serverResponse" id="serverResponse"></p>
                   </div>
                 </form>
               </div>
@@ -63,10 +65,21 @@
     </div>
 	<script>
     // disabled Start CTA function
-    function disableCTA(){
+    function disableStartCTA(){
       document.getElementById('start').disabled = true;
       document.getElementById('start').style.cssText = 'border: 1px solid #999999; background-color: #cccccc; color: #666666; box-shadow: 0px 0px; cursor:not-allowed;';
+      document.getElementById('stop').disabled = false;
+      document.getElementById('stop').style.cssText = 'color:#fff; background-color: rgb(238, 75, 43); cursor:pointer;';
     }
+
+    // disabled Stop CTA function
+    function disableStopCTA(){
+      document.getElementById('stop').disabled = true;
+      document.getElementById('stop').style.cssText = 'border: 1px solid #999999; background-color: #cccccc; color: #666666; box-shadow: 0px 0px; cursor:not-allowed;';
+      document.getElementById('start').disabled = false;
+      document.getElementById('start').style.cssText = '';
+    }
+
     
     // custom javascript to fetch testcase userData from local file
     getUserData();
@@ -90,6 +103,29 @@
       document.getElementById('seachTerm').value = sneakerSearchTerms;
 
     }
+
+    // action that gets triggered by clicking on the stop button
+    document.getElementById('stop').addEventListener('click', event => {
+      let username = document.getElementById("userName").value;
+      const UserDataStopAction = {
+        username: username
+      }
+      const options = {
+        method: "POST",
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(UserDataStopAction)
+      }
+      catchStopAction();
+      async function catchStopAction(){
+        const stopResponse = await fetch('/stop', options);
+        const stopJson = await stopResponse.json();
+        const stopStatus = stopJson.status;
+        document.getElementById("serverResponse").textContent = stopStatus;
+        console.log(stopStatus);
+      }
+    });
 
     // action that gets triggered by clicking on the start button
     document.getElementById('start').addEventListener('click', event => {
