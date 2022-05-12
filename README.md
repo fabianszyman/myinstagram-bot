@@ -3,12 +3,15 @@ App that is running Node.js to automate instagram actions (e.g. liking someones 
 
 
 ## Open To Dos:
-- Add Stop CTA in FE which triggers an entry into DB
+- Fetch user information and save it to UserObject
 
 - Add method to remove hashtag sympols from searchterm input 
 - add method to remove empty spaces between searchterms
 
 - Add Follow function 
+
+- Add Blacklist db 
+- Check for Blacklist Entries 
 
 - Add Session ID into DB 
 - Check for latest Session 
