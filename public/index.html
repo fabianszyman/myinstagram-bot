@@ -131,7 +131,25 @@
           let username = document.getElementById("userName").value;
           let password = document.getElementById("password").value;
           let searchTerm = document.getElementById("seachTerm").value;
-          const arrayOfSearchTerms = searchTerm.split(',');
+          var arrayOfSearchTermsDirty = searchTerm.split(',');
+          var arrayOfSearchTerms = [];
+          for (var searchTermItem of arrayOfSearchTermsDirty){
+
+            // remove empty spaces from string element
+            var searchTermItem = searchTermItem.trim();
+
+            // loop over checkf if a SearchTerm has Hashtag in it and remove it
+            var searchTermHashTagTest = searchTermItem.includes('#')
+            if (searchTermHashTagTest == true){
+		          var searchTermString = String(searchTermItem);
+		          var searchTermItem = searchTermString.substr(1);
+		          arrayOfSearchTerms.push(searchTermItem);
+            } else {
+              arrayOfSearchTerms.push(searchTermItem);
+            }
+          }
+
+          console.log('TESTING: ' +arrayOfSearchTerms);
 
           const UserData = {
             username: username,
