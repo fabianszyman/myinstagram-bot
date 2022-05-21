@@ -86,13 +86,16 @@ dbErrors.loadDatabase(function(err) {
 });
 
 app.post('/stop', (request, response) => {
-    const userNameStopAction = request.body;
-    const usernameFromStopAction = userNameStopAction.username;
+
+    const userStopAction = request.body;
+    const usernameFromStopAction = userStopAction.username;
+    const sessionIDFromStopAction = userStopAction.session_id;
     var timestampActionsStopped = Math.round((new Date()).getTime() / 1000);;
 
     dbStopActionEntry = {
         created_at: timestampActionsStopped,
-        username: usernameFromStopAction
+        username: usernameFromStopAction,
+        session_id: sessionIDFromStopAction
     }
 
     dbStopActions.insert(dbStopActionEntry);
@@ -110,6 +113,7 @@ app.post('/api', (request, response) => {
     const userData = request.body;
     const username = userData.username;
     const password = userData.password;
+    const session_id = userData.session_id;
     const arrayOfSearchTerms = userData.arrayOfSearchTerms;
     var timestampActionsStarted = Math.round((new Date()).getTime() / 1000);;
 
@@ -117,6 +121,7 @@ app.post('/api', (request, response) => {
         created_at: timestampActionsStarted,
         username: request.body.username,
         password: request.body.password,
+        session_id: session_id
     }
 
     dbUsers.insert(dbObjectUsers);
@@ -128,7 +133,8 @@ app.post('/api', (request, response) => {
             }); 
             const page = await browser.newPage();
             
-            // ---> await page.waitForTimeout(500000); // ----> just testig purpose remove before you push
+            // -----> await page.waitForTimeout(500000); // ----> just testig purpose remove before you push
+
             
             await page.goto(loginURL);
             await page.waitForTimeout(2000);
@@ -370,11 +376,20 @@ app.post('/api', (request, response) => {
                                 console.log('Stop Action No User found: '+ dbStopActionData[0]);
                                 userFoundInDbStopAction = false;
                             } else {
-                                console.log('Stop Action Found User: ', dbStopActionData[0]);
+
+                                // check if user stopped action inside same session 
+
                                 var lastEntryInDbStopActions = dbStopActionData[0];
                                 var timestampOfLastEntry = lastEntryInDbStopActions.created_at;
-                                console.log('timestamp stopAction: '+ timestampOfLastEntry);
-                                userFoundInDbStopAction = true;
+                                var sessionIDFromLastEntry = lastEntryInDbStopActions.session_id;
+
+                                if (sessionIDFromLastEntry == session_id) {
+                                    console.log('Stop Action Found User: ', dbStopActionData[0]);
+                                    console.log('timestamp stopAction: '+ timestampOfLastEntry);
+                                    userFoundInDbStopAction = true;
+                                } else {
+                                    console.log('User was found inside StopDB but session is an old one');
+                                }
                             }
                         });
                     }
@@ -385,13 +400,14 @@ app.post('/api', (request, response) => {
                     console.log('Actions stopped');
                     var feedback = 'actionStopped';
                     var timestampActionsEnded = Math.round((new Date()).getTime() / 1000);
+                    userFoundInDbStopAction = false;
                     await browser.close();
                     await response.json({
                         feedback,
                         dbObjectUsers,
                         actions_ended: timestampActionsEnded,
                         amountOfActionsDone,
-                        status: "actions stopped by user"
+                        status: "actions stopped by user - This action can take a couple of seconds "
                     });
                 } 
                 

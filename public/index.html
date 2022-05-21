@@ -62,6 +62,7 @@
         </div>
       </div>
 	<script>
+
     // disabled Start CTA function
     function disableStartCTA(){
       document.getElementById('start').disabled = true;
@@ -80,7 +81,10 @@
 
     
     // custom javascript to fetch testcase userData from local file
-    getUserData();
+
+    const session_id = getUserData().then(session_id => {
+      console.log('TESTING: '+session_id);
+    });
 
     async function getUserData(){
       const data = await fetch('userData.json');
@@ -89,6 +93,36 @@
       const passwordTestCase = userDataJson.password
       document.getElementById('userName').value = userNameTestCase;
       document.getElementById('password').value = passwordTestCase;
+      const session_id_raw = await setCookiesInformation();
+      return session_id_raw
+    }
+
+    async function setCookiesInformation(){
+      
+      //generate session_id
+      var username = document.getElementById("userName").value;
+      var session_id_number = Math.random().toString(36).substr(2, 9);
+      console.log('session_id_number: '+ session_id_number);
+      console.log(typeof session_id_number);
+      let session_id = username+'_'+session_id_number;
+      console.log('session_id: '+session_id);
+
+      // function to set cookies information 
+      function setCookie(name,value,days) {
+          var expires = "";
+          if (days) {
+              var date = new Date();
+              date.setTime(date.getTime() + (days*24*60*60*1000));
+              expires = "; expires=" + date.toUTCString();
+          }
+          document.cookie = name + "=" + (value || "") + expires + "; path=/";
+      }
+      // set username inside Cookies
+      setCookie("username",username,1); //set "username" cookie, expires in 1 days
+      // set sessionID insid Cookies
+      setCookie("session_id",session_id,1); //set "username" cookie, expires in 1 days
+
+      return session_id;
     }
 
     // custom javascript to fetch testcase seachtags form local file
@@ -104,9 +138,26 @@
 
     // action that gets triggered by clicking on the stop button
     document.getElementById('stop').addEventListener('click', event => {
+      // function to fetch Cookies info
+      function getCookie(name) {
+          var nameEQ = name + "=";
+          var ca = document.cookie.split(';');
+          for(var i=0;i < ca.length;i++) {
+              var c = ca[i];
+              while (c.charAt(0)==' ') c = c.substring(1,c.length);
+              if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length,c.length);
+          }
+          return null;
+      }
+      // get cookies information
+      var cookiesUsername = getCookie("username");
+      var cookiesSessionID = getCookie("session_id");
+
+
       let username = document.getElementById("userName").value;
       const UserDataStopAction = {
-        username: username
+        username: username,
+        session_id: cookiesSessionID
       }
       const options = {
         method: "POST",
@@ -125,11 +176,61 @@
       }
     });
 
-    // action that gets triggered by clicking on the start button
-    document.getElementById('start').addEventListener('click', event => {
 
-          let username = document.getElementById("userName").value;
+    // action that gets triggered by clicking on the start button
+    document.getElementById('start').addEventListener('click', session_id => {
+
+          var username = document.getElementById("userName").value;
           let password = document.getElementById("password").value;
+
+          // function to fetch Cookies info
+          function getCookie(name) {
+              var nameEQ = name + "=";
+              var ca = document.cookie.split(';');
+              for(var i=0;i < ca.length;i++) {
+                  var c = ca[i];
+                  while (c.charAt(0)==' ') c = c.substring(1,c.length);
+                  if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length,c.length);
+              }
+              return null;
+          }
+
+          // function to set cookies information 
+          function setCookie(name,value,days) {
+              var expires = "";
+              if (days) {
+                  var date = new Date();
+                  date.setTime(date.getTime() + (days*24*60*60*1000));
+                  expires = "; expires=" + date.toUTCString();
+              }
+              document.cookie = name + "=" + (value || "") + expires + "; path=/";
+          }
+
+          // get cookies information
+          var cookiesUsernameWithoutUsername = getCookie("username");
+          var cookiesSessionIDWithoutUsername = getCookie("session_id");
+          function isEmpty(str) {
+            return (!str || str.length === 0 );
+          }
+
+          var checkEmptyVariable = isEmpty(cookiesUsernameWithoutUsername);
+          console.log('emptyVariable'+ checkEmptyVariable);
+          
+          if (checkEmptyVariable){
+            var cookiesUsername = username;
+            var cookiesSessionID = username+cookiesSessionIDWithoutUsername;
+          } else {
+            var cookiesUsername = cookiesUsernameWithoutUsername;
+            var cookiesSessionID = cookiesSessionIDWithoutUsername;
+          }
+          // set username inside Cookies
+          setCookie("username",cookiesUsername,1); //set "username" cookie, expires in 1 days
+
+          // set sessionInformation inside Cookies
+          setCookie("session_id",cookiesSessionID,1); //set "username" cookie, expires in 1 days
+
+          console.log('Here is my session Info -> UserName: '+ cookiesUsername+ ' and SessionID:'+ cookiesSessionID);
+
           let searchTerm = document.getElementById("seachTerm").value;
           var arrayOfSearchTermsDirty = searchTerm.split(',');
           var arrayOfSearchTerms = [];
@@ -154,6 +255,7 @@
           const UserData = {
             username: username,
             password: password,
+            session_id: cookiesSessionID,
             arrayOfSearchTerms: arrayOfSearchTerms
           };
 
