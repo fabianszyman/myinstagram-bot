@@ -18,7 +18,7 @@ const monogoDBPassword = process.env.PASSWORD;
 
 const mongoDBServerURL = 'mongodb+srv://'+mongoDBUser+':'+monogoDBPassword+'@myinstagrambot.mo425.mongodb.net/InstaBot?retryWrites=true&w=majority'
 mongoose.connect(mongoDBServerURL, {useNewUrlParser: true, useUnifiedTopology: true})
-    .then((result) => app.listen(3000, () => console.log('listening at 3000')))
+    .then((result) => app.listen(process.env.PORT || port, () => console.log(`Example app listening at http://localhost:${port}`)))
     .catch((err) => console.log(err));
 
 
