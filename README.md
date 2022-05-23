@@ -17,6 +17,4 @@ App that is running Node.js to automate instagram actions (e.g. liking someones 
 - Handle case when User has wrong password 
 - Handle case when User tried to log in to many times
 
-- Change nedb to MongoDB cloud 
-
 - deploy app to production 
