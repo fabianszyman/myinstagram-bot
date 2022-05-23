@@ -17,10 +17,10 @@ const mongoDBUser = process.env.MONGO_DB_USER;
 const monogoDBPassword = process.env.PASSWORD;
 //const PORT = process.env.HEROKU_PORT;
 
-const MONGODB_URI = 'mongodb+srv://'+mongoDBUser+':'+monogoDBPassword+'@myinstagrambot.mo425.mongodb.net/InstaBot?retryWrites=true&w=majority'
+//const MONGODB_URI = 'mongodb+srv://'+mongoDBUser+':'+monogoDBPassword+'@myinstagrambot.mo425.mongodb.net/InstaBot?retryWrites=true&w=majority'
 
 // connect Mongoose to your DB
-mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost/MyInstagramBot');
+mongoose.connect(process.env.MONGODB_URI || 'mongodb://127.0.0.1/MyInstagramBot');
 const port = process.env.PORT || 3000;
 app.listen(port);
 
