@@ -26,7 +26,7 @@ var port = 3000;
 
 mongoose.connect(process.env.MONGODB_URL, {useNewUrlParser: true, useUnifiedTopology: true})
     .then((result) => app.listen(port, () => console.log(`listening at ${port}`)))
-    .catch((err) => console.log(err));s
+    .catch((err) => console.log(err));
 
 
 // get User from mongoos
