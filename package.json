@@ -23,6 +23,7 @@
   },
   "devDependencies": {
     "@playwright/test": "^1.21.1",
+    "typescript": "^4.6.4",
     "webpack-cli": "^3.3.12"
   }
 }
