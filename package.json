@@ -14,7 +14,9 @@
   "author": "fabianszyman",
   "license": "ISC",
   "dependencies": {
+    "dotenv": "^16.0.1",
     "express": "^4.17.3",
+    "mongoose": "^6.3.4",
     "nedb": "^1.8.0"
   },
   "devDependencies": {

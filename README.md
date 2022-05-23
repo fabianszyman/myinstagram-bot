@@ -3,14 +3,14 @@ App that is running Node.js to automate instagram actions (e.g. liking someones 
 
 
 ## Open To Dos:
+
+- add 1000 = 1k  & 1.000.000 = 1m function
+
 - Add Unfollow function 
 - Add Comment User function
 
 - Add Blacklist db 
 - Check for Blacklist Entries 
-
-- Add Session ID into DB 
-- Check for latest Session 
 
 - Give user action feedback inside the FE while script is running
 
@@ -18,3 +18,5 @@ App that is running Node.js to automate instagram actions (e.g. liking someones 
 - Handle case when User tried to log in to many times
 
 - Change nedb to MongoDB cloud 
+
+- deploy app to production 

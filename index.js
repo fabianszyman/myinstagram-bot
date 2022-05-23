@@ -2,11 +2,36 @@ const playwright = require('playwright');
 const express = require('express');
 const { request, response } = require('express');
 const app = express();
-app.listen(3000, () => console.log('listening at 3000'));
 app.use(express.static('public'));
 app.use(express.json({limit: '1mb'}));
-var Datastore = require('nedb');
+require('dotenv').config();
+const mongoose = require('mongoose');
+const User = require('./models/users');
+const Action = require('./models/actions');
+const Error = require('./models/errors');
+const StopAction = require('./models/stopactions');
 
+
+// Connect to MongoDB
+const mongoDBUser = process.env.MONGO_DB_USER;
+const monogoDBPassword = process.env.PASSWORD;
+
+const mongoDBServerURL = 'mongodb+srv://'+mongoDBUser+':'+monogoDBPassword+'@myinstagrambot.mo425.mongodb.net/InstaBot?retryWrites=true&w=majority'
+mongoose.connect(mongoDBServerURL, {useNewUrlParser: true, useUnifiedTopology: true})
+    .then((result) => app.listen(3000, () => console.log('listening at 3000')))
+    .catch((err) => console.log(err));
+
+
+// get User from mongoos
+app.get('/all-users', (req,res) => {
+    User.find({username:'sneaker_mania_berlin'}).sort({createdAt: -1}).limit(1)
+    .then((result) => {
+        res.send(result)
+    })
+    .catch((err) => {
+        console.log(err)
+    })
+})
 
 // URL collection 
 const loginURL = 'https://www.instagram.com/';
@@ -26,6 +51,8 @@ var loginErrorMessageTooManyLogins = 'p[data-testid="login-error-message"]';
 var searchTermSuggestionFirstResult = 'div:nth-child(1)>a[class="-qQT3"]';
 var clearSearchTermInputIcon = '.coreSpriteSearchClear';
 var pageNotFountTitle = '#react-root > section > main > div > div > h2';
+var userNameInsidePostSelector = 'div.e1e1d > div > span > a';
+
 
     // action Types variables
     var actionTypes = [
@@ -63,28 +90,6 @@ var amountOfErrosLogged = 0;
 var errorLogLimit = 5;
 
 
-var dbActions = new Datastore({ filename: 'dbActions.db' , autoload: true });
-var dbStopActions = new Datastore({ filename: 'dbStopActions.db' , autoload: true });
-var dbObjectBigUserAccount = new Datastore({ filename: 'dbBigUserAccounts.db' , autoload: true });
-var dbUsers = new Datastore({ filename: 'dbUsers.db' , autoload: true });
-var dbErrors = new Datastore({ filename: 'dbErrorLogging.db' , autoload: true });
-
-dbActions.loadDatabase(function(err) {
-    // Start issuing commands after callback...
-});
-
-dbObjectBigUserAccount.loadDatabase(function(err) {
-    // Start issuing commands after callback...
-});
-
-dbUsers.loadDatabase(function(err) {
-    // Start issuing commands after callback...
-});
-
-dbErrors.loadDatabase(function(err) {
-    // Start issuing commands after callback...
-});
-
 app.post('/stop', (request, response) => {
 
     const userStopAction = request.body;
@@ -92,17 +97,21 @@ app.post('/stop', (request, response) => {
     const sessionIDFromStopAction = userStopAction.session_id;
     var timestampActionsStopped = Math.round((new Date()).getTime() / 1000);;
 
-    dbStopActionEntry = {
-        created_at: timestampActionsStopped,
+    // mongoos and mongo sandbox routes 
+    const stopAction = new StopAction({
         username: usernameFromStopAction,
         session_id: sessionIDFromStopAction
-    }
+    });
+    stopAction.save()
+    .then((result) => {
+        console.log('DB Stop Action Entry dbStopActions done');
+    })
+    .catch((err) => {
+        console.log(err)
+    })
 
-    dbStopActions.insert(dbStopActionEntry);
     response.json({
-        actions_stopped: timestampActionsStopped,
-        dbStopActionEntry,
-        status: "action was stopped"
+        status: "actions stopped by user - This action can take a couple of seconds"
     });
 
 });
@@ -115,16 +124,21 @@ app.post('/api', (request, response) => {
     const password = userData.password;
     const session_id = userData.session_id;
     const arrayOfSearchTerms = userData.arrayOfSearchTerms;
-    var timestampActionsStarted = Math.round((new Date()).getTime() / 1000);;
 
-    dbObjectUsers = {
-        created_at: timestampActionsStarted,
-        username: request.body.username,
-        password: request.body.password,
-        session_id: session_id
-    }
+    // mongoos and mongo sandbox routes 
+    const user = new User({
+            username: username,
+            password: password,
+            session_id: session_id
+    });
+    user.save()
+    .then((result) => {
+        console.log('DB Entry dbUsers done');
+    })
+    .catch((err) => {
+        console.log(err)
+    })
 
-    dbUsers.insert(dbObjectUsers);
 
     async function main() {
         try{
@@ -132,8 +146,8 @@ app.post('/api', (request, response) => {
                 headless: false // setting this to true will not run the UI
             }); 
             const page = await browser.newPage();
-            
-            // -----> await page.waitForTimeout(500000); // ----> just testig purpose remove before you push
+
+            // --->> await page.waitForTimeout(500000); // ----> just testig purpose remove before you push
 
             
             await page.goto(loginURL);
@@ -276,6 +290,8 @@ app.post('/api', (request, response) => {
                                         // check if user account is too big due to too many followers
                                         else if (amountOfFollowersUserHas >= maxAmountOfFollowersACertainUserShouldHave) {
                                             console.log('User has more than '+ maxAmountOfFollowersACertainUserShouldHave + 'Followers. Account is too big --> Follow action is skipped');
+                                            
+                                            /* --> insert DBObject to neDB 
                                             var timestampLastLikeAction = Math.round((new Date()).getTime() / 1000);
                                             dbObjectBigUserAccount = {
                                                 username: request.body.username,
@@ -294,6 +310,7 @@ app.post('/api', (request, response) => {
                                             }
                                             dbObjectBigUserAccount.insert(dbObjectBigUserAccount);
                                             console.log(dbObjectBigUserAccount);
+                                            */
                             
                                         }
                                         
@@ -303,55 +320,72 @@ app.post('/api', (request, response) => {
                                             console.log('User '+ userNameThatCertainUserHas + ' was followed');
                                             amountOfActionsDone++;
                                             var timestampLastLikeAction = Math.round((new Date()).getTime() / 1000);
-                                            dbObjectActionFollow = {
-                                                created_at: timestampLastLikeAction,
-                                                username: request.body.username,
-                                                searchTerms: request.body.arrayOfSearchTerms,
+
+                                            // mongoos and mongo sandbox routes 
+                                            const action = new Action({
+                                                username: username,
+                                                searchTerms: arrayOfSearchTerms,
+                                                session_id: session_id,
                                                 seachTermUsed: searchTerm,
-                                                action: {
-                                                    timestampLastLikeAction: timestampLastLikeAction,
-                                                    actionType: actionType,
-                                                    amountOfActionsDone: amountOfActionsDone,
-                                                    userData: {
-                                                        created_at: timestampUserInfoFetched,
-                                                        username: userNameThatCertainUserHas,
-                                                        amount_of_posts: amountOfPostsUserHas,
-                                                        amount_of_followers: amountOfFollowersUserHas,
-                                                        amount_of_people_user_follows: amountOfPeopleUserFollows
-                                                    }
+                                                amountOfActionsDone: amountOfActionsDone,
+                                                actionType: actionType,
+                                                userData: {
+                                                    username: userNameThatCertainUserHas,
+                                                    url: 'https://www.instagram.com/'+userNameThatCertainUserHas,
+                                                    amount_of_posts: amountOfPostsUserHas,
+                                                    amount_of_followers: amountOfFollowersUserHas,
+                                                    amount_of_people_user_follows: amountOfPeopleUserFollows
                                                 }
-                                            }
-                                            dbActions.insert(dbObjectActionFollow);
-                                            console.log(dbObjectActionFollow); 
+                                            });
+                                            action.save()
+                                            .then((result) => {
+                                                console.log('DB-Action Entry dbActions done');
+                                            })
+                                            .catch((err) => {
+                                                console.log(err)
+                                            })
                                         }
                                     }
                                 }
                             
                                 // start Action click like Button 
                                 if (actionType == 'likeByTags'){
-            
+
+                                if (await page.$(userNameInsidePostSelector) !== null){
+                                    var amountOfFollowersUserHasString = await page.$eval(userNameInsidePostSelector, a => a.textContent);
+                                    console.log('UserName from Instgram Post '+ amountOfFollowersUserHas);
+                                }
+                                var postURL = await page.url();
+                                console.log('Current URL is :'+ postURL);
+                                    
                                     // check if post was not already liked
                                     if (await page.$(emptyHeartIcon) !== null){
                                         await page.click(emptyHeartIcon);
                                         console.log("Post liked");
                                         amountOfActionsDone++;
-                                        var timestampLastLikeAction = Math.round((new Date()).getTime() / 1000);
-                                        dbObjectActions = {
-                                            created_at: timestampLastLikeAction,
-                                            username: request.body.username,
-                                            searchTerms: request.body.arrayOfSearchTerms,
+
+                                        // mongoos and mongo sandbox routes 
+                                        const action = new Action({
+                                            username: username,
+                                            searchTerms: arrayOfSearchTerms,
+                                            session_id: session_id,
                                             seachTermUsed: searchTerm,
-                                            usernameOfInstagramProfile: usernameOfInstagramProfile,
-                                            action: {
-                                                timestampLastLikeAction: timestampLastLikeAction,
-                                                actionType: actionType,
-                                                url: productURLOfNewestPost,
-                                                userProfileURL: userProfileURL,
-                                                amountOfActionsDone: amountOfActionsDone
+                                            amountOfActionsDone: amountOfActionsDone,
+                                            actionType: actionType,
+                                            userData: {
+                                                username: amountOfFollowersUserHasString,
+                                                url: 'https://www.instagram.com/'+amountOfFollowersUserHasString,
+                                                urlOfCertainPost: postURL
                                             }
-                                        }
-                                        dbActions.insert(dbObjectActions);
-                                        console.log('Amount of Actions: '+ amountOfActionsDone);
+                                        });
+                                        action.save()
+                                        .then((result) => {
+                                            console.log('DB-Action Entry dbActions done');
+                                        })
+                                        .catch((err) => {
+                                            console.log(err)
+                                        })
+
                                     } else {
                                         console.log("Post was already liked");
                                     }
@@ -362,6 +396,32 @@ app.post('/api', (request, response) => {
                     
                     // check if user already exists inside dbActions - thus used the app before
                     if (!userFoundInDbStopAction){
+                        // get User from mongoos
+                        
+                        StopAction.find({username:username}).sort({createdAt: -1}).limit(1)
+                        .then((result) => {
+
+                            // convert BSON object from MongoDB to JSON Object
+                            const LatestEntryInsideStopActionCollectionWithCurrentUserName = JSON.stringify(result[0]);
+                            const LatestEntryInsideStopActionCollectionWithCurrentUserNameJSON  = JSON.parse( LatestEntryInsideStopActionCollectionWithCurrentUserName );
+            
+                            var sessionIDFromLastEntry = LatestEntryInsideStopActionCollectionWithCurrentUserNameJSON.session_id;
+                            console.log('THIS IS MY SESSION ID '+ sessionIDFromLastEntry)
+            
+                            if (sessionIDFromLastEntry == session_id) {
+                                console.log('Stop Action Found User: ', LatestEntryInsideStopActionCollectionWithCurrentUserNameJSON.username);
+                                userFoundInDbStopAction = true;
+                            } else {
+                                console.log('Old Session ID: '+ sessionIDFromLastEntry+ ' is not equal with new session ID: '+ session_id);
+                                console.log('User was found inside StopDB but session is an old one');
+                            }
+                        })
+                        .catch((err) => {
+                            console.log(err)
+                        })
+                        
+/* ----->
+
                         var dbStopAction = new Datastore({ filename: 'dbStopActions.db' , autoload: true });
                         await dbStopAction.find({ username: username }).sort({ created_at: -1 }).exec(function 
                         (err, dbStopActionData) {
@@ -392,6 +452,7 @@ app.post('/api', (request, response) => {
                                 }
                             }
                         });
+--->  */
                     }
                 }
             
@@ -404,7 +465,6 @@ app.post('/api', (request, response) => {
                     await browser.close();
                     await response.json({
                         feedback,
-                        dbObjectUsers,
                         actions_ended: timestampActionsEnded,
                         amountOfActionsDone,
                         status: "actions stopped by user - This action can take a couple of seconds "
@@ -443,17 +503,24 @@ app.post('/api', (request, response) => {
                 return randomAmountOfSeconds;
             }
             // function to wait for random amount of seconds --END
-        } catch (e){
-            console.log('Error Logged: '+ e);
-            const error = e;
+        } catch (er){
+            console.log('Error Logged: '+ er);
             var timestampErrorWasLogged = Math.round((new Date()).getTime() / 1000);
-            dbErrorObject = {
-                created_at: timestampErrorWasLogged,
-                errorLog: error,
-                username: request.body.username,
-                searchTerms: request.body.arrayOfSearchTerms,
-            }
-            dbErrors.insert(dbErrorObject);
+
+            // MongoDB log Error in DB Collection Errors
+            const error = new Error({
+                username: username,
+                session_id: session_id,
+                errorInfo: er,
+            });
+            error.save()
+            .then((result) => {
+                console.log('DB-Action Entry dbErrors done');
+            })
+            .catch((err) => {
+                console.log(err)
+            })
+
             await response.json({
                 status: "Error was logged - Please try again later"
             });

@@ -13,6 +13,7 @@ dbActions.db
 dbBigUserAccounts.db
 dbStopActions.db
 dbErrorLogging.db
+.env
 
 
 # Diagnostic reports (https://nodejs.org/api/report.html)

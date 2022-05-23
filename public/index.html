@@ -153,10 +153,13 @@
       var cookiesUsername = getCookie("username");
       var cookiesSessionID = getCookie("session_id");
 
+      console.log('Cookies UserName' +cookiesUsername);
+      console.log('Cookies SessionID' +cookiesSessionID);
+
 
       let username = document.getElementById("userName").value;
       const UserDataStopAction = {
-        username: username,
+        username: cookiesUsername,
         session_id: cookiesSessionID
       }
       const options = {
