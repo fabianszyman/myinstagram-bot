@@ -10,15 +10,16 @@ const User = require('./models/users');
 const Action = require('./models/actions');
 const Error = require('./models/errors');
 const StopAction = require('./models/stopactions');
-
+const port = 3000;
 
 // Connect to MongoDB
 const mongoDBUser = process.env.MONGO_DB_USER;
 const monogoDBPassword = process.env.PASSWORD;
+const PORT = process.env.HEROKU_PORT;
 
 const mongoDBServerURL = 'mongodb+srv://'+mongoDBUser+':'+monogoDBPassword+'@myinstagrambot.mo425.mongodb.net/InstaBot?retryWrites=true&w=majority'
 mongoose.connect(mongoDBServerURL, {useNewUrlParser: true, useUnifiedTopology: true})
-    .then((result) => app.listen(process.env.PORT || port, () => console.log(`Example app listening at http://localhost:${port}`)))
+    .then((result) => app.listen(PORT || port, () => console.log(`Example app listening at http://localhost:${port}`)))
     .catch((err) => console.log(err));
 
 
