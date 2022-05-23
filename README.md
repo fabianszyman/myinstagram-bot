@@ -17,4 +17,4 @@ App that is running Node.js to automate instagram actions (e.g. liking someones 
 - Handle case when User has wrong password 
 - Handle case when User tried to log in to many times
 
-- deploy app to production  
+- deploy app to production  --> test
