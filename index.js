@@ -13,20 +13,19 @@ const StopAction = require('./models/stopactions');
 
 
 // Connect to MongoDB
-const mongoDBUser = process.env.MONGO_DB_USER;
-const monogoDBPassword = process.env.PASSWORD;
+//const mongoDBUser = process.env.MONGO_DB_USER;
+//const monogoDBPassword = process.env.PASSWORD;
 //const PORT = process.env.HEROKU_PORT;
 
 //const MONGODB_URI = 'mongodb+srv://'+mongoDBUser+':'+monogoDBPassword+'@myinstagrambot.mo425.mongodb.net/InstaBot?retryWrites=true&w=majority'
 
 // connect Mongoose to your DB
-mongoose.connect(process.env.MONGODB_URI || 'mongodb://127.0.0.1/MyInstagramBot');
-const port = process.env.PORT || 3000;
-app.listen(port);
+var MONGODB_URI = process.env.MONGODB_URL || "mongodb://127.0.0.1/InstaBot";
+var port = 3000;
 
-//mongoose.connect(mongoDBServerURL, {useNewUrlParser: true, useUnifiedTopology: true})
-//    .then((result) => app.listen(3000, () => console.log('listening at 3000')))
-//    .catch((err) => console.log(err));
+mongoose.connect(MONGODB_URI, {useNewUrlParser: true, useUnifiedTopology: true})
+    .then((result) => app.listen(port, () => console.log(`listening at${port}`)))
+    .catch((err) => console.log(err));
 
 
 // get User from mongoos
