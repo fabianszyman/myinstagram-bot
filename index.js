@@ -22,11 +22,12 @@ const StopAction = require('./models/stopactions');
 // connect Mongoose to your DB
 
 
-var port = 3000;
+var mongodbURL = process.env.MONGODB_URL;
+console.log('this is my url '+ mongodbURL);
 
-mongoose.connect(process.env.MONGODB_URL, {useNewUrlParser: true, useUnifiedTopology: true})
-    .then((result) => app.listen(port, () => console.log(`listening at ${port}`)))
-    .catch((err) => console.log(err));
+mongoose.connect(mongodbURL, {useNewUrlParser: true, useUnifiedTopology: true})
+    .then((result) => console.log(result))
+    .catch((err) => console.log(err))
 
 
 // get User from mongoos
