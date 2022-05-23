@@ -11,13 +11,20 @@ const Action = require('./models/actions');
 const Error = require('./models/errors');
 const StopAction = require('./models/stopactions');
 
+const mongoOptions = {
+    useNewUrlParser: true
+}
 
 
 // connect Mongoose to your DB
-mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost/your-app-name');
 
-const port = process.env.PORT || 3000;
-app.listen(port);
+mongoose.connect(
+    process.env.MONGODB_URI,
+    mongoOptions
+  )
+  .then(()=>console.log('connected'))
+  .catch(e=>console.log(e));
+
 
 // connect Mongoose to your DB
 /*
