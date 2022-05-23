@@ -19,7 +19,8 @@
     "dotenv": "^16.0.1",
     "express": "^4.17.3",
     "mongoose": "^6.3.4",
-    "nedb": "^1.8.0"
+    "nedb": "^1.8.0",
+    "playwright": "^1.22.2"
   },
   "devDependencies": {
     "@playwright/test": "^1.21.1",
