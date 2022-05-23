@@ -4,7 +4,7 @@ App that is running Node.js to automate instagram actions (e.g. liking someones 
 
 ## Open To Dos:
 
-- add 1000 = 1k  & 1.000.000 = 1m function
+- add 1000 = 1k  & 1.000.000 = 1mio function
 
 - Add Unfollow function 
 - Add Comment User function
@@ -17,4 +17,4 @@ App that is running Node.js to automate instagram actions (e.g. liking someones 
 - Handle case when User has wrong password 
 - Handle case when User tried to log in to many times
 
-- deploy app to production 
+- deploy app to production  
