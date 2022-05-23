@@ -25,7 +25,7 @@ const StopAction = require('./models/stopactions');
 var mongodbURL = process.env.MONGODB_URL;
 console.log('this is my url '+ mongodbURL);
 
-mongoose.connect(mongodbURL, {useNewUrlParser: true, useUnifiedTopology: true})
+mongoose.connect(mongodbURL, {useNewUrlParser: true, useUnifiedTopology: true} || 'mongodb://localhost/your-app-name')
     .then((result) => console.log(result))
     .catch((err) => console.log(err))
 
