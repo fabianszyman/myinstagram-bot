@@ -12,34 +12,22 @@ const Error = require('./models/errors');
 const StopAction = require('./models/stopactions');
 
 
-// Connect to MongoDB
-//const mongoDBUser = process.env.MONGO_DB_USER;
-//const monogoDBPassword = process.env.PASSWORD;
-//const PORT = process.env.HEROKU_PORT;
-
-//const MONGODB_URI = 'mongodb+srv://'+mongoDBUser+':'+monogoDBPassword+'@myinstagrambot.mo425.mongodb.net/InstaBot?retryWrites=true&w=majority'
 
 // connect Mongoose to your DB
+mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost/your-app-name');
 
+const port = process.env.PORT || 3000;
+app.listen(port);
 
+// connect Mongoose to your DB
+/*
 var mongodbURL = process.env.MONGODB_URL;
 console.log('this is my url '+ mongodbURL);
 
 mongoose.connect(mongodbURL, {useNewUrlParser: true, useUnifiedTopology: true} || 'mongodb://localhost/your-app-name')
     .then((result) => console.log(result))
     .catch((err) => console.log(err))
-
-
-// get User from mongoos
-app.get('/all-users', (req,res) => {
-    User.find({username:'sneaker_mania_berlin'}).sort({createdAt: -1}).limit(1)
-    .then((result) => {
-        res.send(result)
-    })
-    .catch((err) => {
-        console.log(err)
-    })
-})
+*/
 
 // URL collection 
 const loginURL = 'https://www.instagram.com/';
