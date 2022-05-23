@@ -15,7 +15,6 @@
   "author": "fabianszyman",
   "license": "ISC",
   "dependencies": {
-    "@playwright/test": "^1.21.1",
     "dotenv": "^16.0.1",
     "express": "^4.17.3",
     "mongoose": "^6.3.4",
